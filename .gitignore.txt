@@ -1,0 +1,16 @@
+# frontend
+node_modules/
+dist/
+
+# backend
+target/
+build/
+.gradle/
+.mvn/
+
+# IDE
+.idea/
+.vscode/
+
+# env
+.env
