@@ -36,6 +36,13 @@ public class JobApplicationService {
         return created;
     }
 
+    public JobApplication getById(Long id) {
+        // 固定写法，按条件筛选集合里的元素
+        return store.stream()
+                .filter(jobApplication -> jobApplication.getId().equals(id))
+                .findFirst().orElse(null);
+    }
+
     // Mock data for now (no DB)
     public List<JobApplication> listAll() {
         return store;
