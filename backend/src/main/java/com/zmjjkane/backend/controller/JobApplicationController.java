@@ -3,6 +3,7 @@ package com.zmjjkane.backend.controller;
 import com.zmjjkane.backend.model.JobApplication;
 import com.zmjjkane.backend.service.JobApplicationService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +22,19 @@ public class JobApplicationController {
     @GetMapping
     public List<JobApplication> listAll() {
         return jobApplicationService.listAll();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<JobApplication> getById(@PathVariable Long id) {
+        // 通过ResponseEntity我们可以定义返回的状态
+        
+        JobApplication jobApplication = jobApplicationService.getById(id);
+
+        if (jobApplication == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(jobApplication);
     }
 
     @PostMapping
