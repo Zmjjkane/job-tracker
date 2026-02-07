@@ -54,4 +54,14 @@ public class JobApplicationController {
         // ok -> 200 + json
         return ResponseEntity.ok(jobApplication);
     }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        boolean deleted = jobApplicationService.deleteById(id);
+        if (!deleted) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.noContent().build();
+    }
 }
