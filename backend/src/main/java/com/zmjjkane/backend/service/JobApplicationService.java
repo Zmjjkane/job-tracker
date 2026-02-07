@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -53,6 +54,18 @@ public class JobApplicationService {
         updated.setStatus(input.getStatus());
         updated.setAppliedDate(input.getAppliedDate());
         return updated;
+    }
+
+    public boolean deleteById(Long id) {
+        Iterator<JobApplication> iterator = store.iterator();
+        while (iterator.hasNext()) {
+            JobApplication jobApplication = iterator.next();
+            if (jobApplication.getId().equals(id)) {
+                iterator.remove();
+                return true;
+            }
+        }
+        return false;
     }
 
     // Mock data for now (no DB)
