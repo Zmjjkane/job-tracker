@@ -42,4 +42,16 @@ public class JobApplicationController {
     public JobApplication create(@RequestBody JobApplication job) {
         return jobApplicationService.create(job);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<JobApplication> update(
+            @PathVariable Long id, @RequestBody JobApplication job) {
+        JobApplication jobApplication = jobApplicationService.updateById(id, job);
+        if (jobApplication == null) {
+            // not found -> 404
+            return ResponseEntity.notFound().build();
+        }
+        // ok -> 200 + json
+        return ResponseEntity.ok(jobApplication);
+    }
 }

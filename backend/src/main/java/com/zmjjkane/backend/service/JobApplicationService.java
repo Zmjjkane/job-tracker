@@ -43,6 +43,18 @@ public class JobApplicationService {
                 .findFirst().orElse(null);
     }
 
+    public JobApplication updateById(Long id, JobApplication input) {
+        JobApplication updated = getById(id);
+        if  (updated == null) {
+            return null;
+        }
+        updated.setCompany(input.getCompany());
+        updated.setPosition(input.getPosition());
+        updated.setStatus(input.getStatus());
+        updated.setAppliedDate(input.getAppliedDate());
+        return updated;
+    }
+
     // Mock data for now (no DB)
     public List<JobApplication> listAll() {
         return store;
