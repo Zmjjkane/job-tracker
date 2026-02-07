@@ -18,7 +18,7 @@ public class JobApplicationController {
         this.jobApplicationService = jobApplicationService;
     }
 
-    // GET /api.job-applications -> returns mock list
+    // GET /api/job-applications -> returns list
     @GetMapping
     public List<JobApplication> listAll() {
         return jobApplicationService.listAll();
@@ -26,8 +26,8 @@ public class JobApplicationController {
 
     @GetMapping("/{id}")
     public ResponseEntity<JobApplication> getById(@PathVariable Long id) {
-        // 通过ResponseEntity我们可以定义返回的状态
-        
+        // Use ResponseEntity to control HTTP status codes
+
         JobApplication jobApplication = jobApplicationService.getById(id);
 
         if (jobApplication == null) {
@@ -38,9 +38,11 @@ public class JobApplicationController {
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public JobApplication create(@RequestBody JobApplication job) {
-        return jobApplicationService.create(job);
+    public ResponseEntity<JobApplication> create(@RequestBody JobApplication job) {
+        // if need to return body, use .body, .ok(body) is a special case
+        // if no body return, use .build()
+        JobApplication jobApplication = jobApplicationService.create(job);
+        return ResponseEntity.status(HttpStatus.CREATED).body(jobApplication);
     }
 
     @PutMapping("/{id}")
@@ -56,7 +58,6 @@ public class JobApplicationController {
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         boolean deleted = jobApplicationService.deleteById(id);
         if (!deleted) {
