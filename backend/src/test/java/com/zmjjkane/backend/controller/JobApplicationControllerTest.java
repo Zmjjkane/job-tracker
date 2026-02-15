@@ -1,12 +1,14 @@
 package com.zmjjkane.backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zmjjkane.backend.exception.*;
 import com.zmjjkane.backend.model.JobApplication;
 import com.zmjjkane.backend.service.JobApplicationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -15,7 +17,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -38,6 +40,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * 3) Assert the resulting HTTP status code (REST behavior)
  */
 @WebMvcTest(JobApplicationController.class)
+@Import(GlobalExceptionHandler.class)
+// import com...GlobalExceptionHandler; 只是 Java 的“引用类”，让你在代码里能写这个类名；
+// 但它不会把这个类注册进 Spring 测试容器。
+// @Import 明确告诉 Spring Test：把这个 handler 当作 bean 加进测试上下文
+// 这样你才能在测试里真正验证 “异常 → handler → JSON 404”
 public class JobApplicationControllerTest {
 
     @Autowired
@@ -94,12 +101,15 @@ public class JobApplicationControllerTest {
         );
 
         // Stub: service returns null -> controller should map it to 404.
-        when(jobApplicationService.updateById(eq(999L), any(JobApplication.class))).thenReturn(null);
+        when(jobApplicationService.updateById(eq(999L), any(JobApplication.class)))
+                .thenThrow(new ResourceNotFoundException("JobApplication not found: 999"));
 
         mockMvc.perform(put("/api/job-applications/999")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.path").value("/api/job-applications/999"));
     }
 
     @Test
@@ -124,50 +134,41 @@ public class JobApplicationControllerTest {
     @Test
     void getById_notFound_returns404() throws Exception {
         // Simulate "not found" at the service layer.
-        when(jobApplicationService.getById(999L)).thenReturn(null);
+        when(jobApplicationService.getById(999L))
+                .thenThrow(new ResourceNotFoundException("JobApplication not found: 999"));
 
         // GET /api/job-applications/999 -> 404 Not Found
         mockMvc.perform(get("/api/job-applications/999"))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.error").value("Not Found"))
+                .andExpect(jsonPath("$.message").value("JobApplication not found: 999"))
+                .andExpect(jsonPath("$.path").value("/api/job-applications/999"));
     }
 
     @Test
     void deleteById_notFound_returns404() throws Exception {
         // Simulate failed deletion (resource not found).
-        when(jobApplicationService.deleteById(999L)).thenReturn(false);
+        // when语句里不能是void, 所以当delete void时，语法是doNothing / doThrow + when(对象).delete
+        // 平时get那些是when(对象.get).thenReturn
+        doThrow(new ResourceNotFoundException("JobApplication not found: 999"))
+                .when(jobApplicationService).deleteById(999L);
 
         // DELETE /api/job-applications/999 -> 404 Not Found
         mockMvc.perform(delete("/api/job-applications/999"))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.path").value("/api/job-applications/999"));
     }
 
     @Test
     void delete_success_returns204() throws Exception {
         // Simulate successful deletion.
-        when(jobApplicationService.deleteById(1L)).thenReturn(true);
+        doNothing().when(jobApplicationService).deleteById(1L);
 
         // DELETE /api/job-applications/1 -> 204 No Content
         mockMvc.perform(delete("/api/job-applications/1"))
                 .andExpect(status().isNoContent());
     }
 
-    @Test
-    void delete_thenGet_returns404() throws Exception {
-        /*
-         * Post-delete behavior simulation:
-         * - delete succeeds
-         * - subsequent lookup returns null
-         *
-         * Note: service is mocked, so we verify controller HTTP behavior,
-         * not actual persistence/state changes.
-         */
-        when(jobApplicationService.deleteById(1L)).thenReturn(true);
-        when(jobApplicationService.getById(1L)).thenReturn(null);
-
-        mockMvc.perform(delete("/api/job-applications/1"))
-                .andExpect(status().isNoContent());
-
-        mockMvc.perform(get("/api/job-applications/1"))
-                .andExpect(status().isNotFound());
-    }
 }

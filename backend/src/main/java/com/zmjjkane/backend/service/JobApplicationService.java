@@ -1,5 +1,6 @@
 package com.zmjjkane.backend.service;
 
+import com.zmjjkane.backend.exception.ResourceNotFoundException;
 import com.zmjjkane.backend.model.JobApplication;
 import com.zmjjkane.backend.repository.JobApplicationRepository;
 import org.springframework.stereotype.Service;
@@ -25,14 +26,14 @@ public class JobApplicationService {
     }
 
     public JobApplication getById(Long id) {
-        return repository.findById(id).orElse(null);
+        return repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("JobApplication not found: " + id));
     }
 
     public JobApplication updateById(Long id, JobApplication input) {
-        JobApplication updated = getById(id);
-        if  (updated == null) {
-            return null;
-        }
+        JobApplication updated = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("JobApplication not found: " + id));
+
         updated.setCompany(input.getCompany());
         updated.setPosition(input.getPosition());
         updated.setStatus(input.getStatus());
@@ -40,12 +41,10 @@ public class JobApplicationService {
         return repository.save(updated);
     }
 
-    public boolean deleteById(Long id) {
-        if (!repository.existsById(id)) {
-            return false;
-        }
+    public void deleteById(Long id) {
+        JobApplication existing = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("JobApplication not found: " + id));
         repository.deleteById(id);
-        return true;
     }
 
     // Mock data for now (no DB)
