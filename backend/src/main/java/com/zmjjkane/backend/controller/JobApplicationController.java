@@ -27,13 +27,7 @@ public class JobApplicationController {
     @GetMapping("/{id}")
     public ResponseEntity<JobApplication> getById(@PathVariable Long id) {
         // Use ResponseEntity to control HTTP status codes
-
         JobApplication jobApplication = jobApplicationService.getById(id);
-
-        if (jobApplication == null) {
-            return ResponseEntity.notFound().build();
-        }
-
         return ResponseEntity.ok(jobApplication);
     }
 
@@ -49,20 +43,12 @@ public class JobApplicationController {
     public ResponseEntity<JobApplication> update(
             @PathVariable Long id, @RequestBody JobApplication job) {
         JobApplication jobApplication = jobApplicationService.updateById(id, job);
-        if (jobApplication == null) {
-            // not found -> 404
-            return ResponseEntity.notFound().build();
-        }
-        // ok -> 200 + json
         return ResponseEntity.ok(jobApplication);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        boolean deleted = jobApplicationService.deleteById(id);
-        if (!deleted) {
-            return ResponseEntity.notFound().build();
-        }
+        jobApplicationService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 }
