@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -32,16 +33,19 @@ public class JobApplicationController {
     }
 
     @PostMapping
-    public ResponseEntity<JobApplication> create(@RequestBody JobApplication job) {
+    public ResponseEntity<JobApplication> create(@Valid @RequestBody JobApplication job) {
         // if need to return body, use .body, .ok(body) is a special case
         // if no body return, use .build()
+        // @Valid是触发器, 告诉Spring对这个参数对象做bean validation
+        // @RequestBody -> 把JSON转成JobApplication, @Valid -> 触发校验
+        // 如果违反@NotBlank/@NotNull/... -> 不进入controller方法体, 走异常流程
         JobApplication jobApplication = jobApplicationService.create(job);
         return ResponseEntity.status(HttpStatus.CREATED).body(jobApplication);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<JobApplication> update(
-            @PathVariable Long id, @RequestBody JobApplication job) {
+            @PathVariable Long id, @Valid @RequestBody JobApplication job) {
         JobApplication jobApplication = jobApplicationService.updateById(id, job);
         return ResponseEntity.ok(jobApplication);
     }

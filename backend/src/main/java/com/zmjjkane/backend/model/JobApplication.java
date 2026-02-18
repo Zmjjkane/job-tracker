@@ -5,6 +5,9 @@ import com.fasterxml.jackson.annotation.JsonTypeId;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 import java.time.LocalDate;
 
 
@@ -39,11 +42,21 @@ public class JobApplication {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    // 属于Bean Validation, 只在触发校验时才会执行
+    // 常见触发: 1. Controller入参上触发, 配合@Valid
+    // 2. 持久化/JPA阶段触发, 但更推荐controller入参时拦截
+    @NotBlank(message = "company is required")
     private String company;
+
+    @NotBlank(message = "position is required")
     private String position;
+
+    @NotBlank(message = "status is required")
     private String status;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
+    @NotNull(message = "appliedDate is required")
     private LocalDate appliedDate;
     public JobApplication() {
         // Required by Jackson for JSON -> object

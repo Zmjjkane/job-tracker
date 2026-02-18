@@ -95,6 +95,32 @@ public class JobApplicationControllerTest {
     }
 
     @Test
+    void create_invalidInput_returns400() throws Exception {
+        String invalidJson = """
+                {
+                "company": "",
+                "position": "",
+                "status": null,
+                "appliedDate": null
+                }
+                """;
+        mockMvc.perform(post("/api/job-applications")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(invalidJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.error").value("Bad Request"))
+                .andExpect(jsonPath("$.path").value("/api/job-applications"));
+    }
+
+    @Test
+    void create_emptyBody_returns400() throws Exception {
+        mockMvc.perform(post("/api/job-applications")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void update_nofFound_returns404() throws Exception {
         JobApplication request = new JobApplication(
                 null, "Amazon", "SDE I", "INTERVIEW", LocalDate.of(2026, 2, 9)
