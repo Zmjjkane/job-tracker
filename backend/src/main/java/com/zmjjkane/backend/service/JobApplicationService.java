@@ -1,15 +1,12 @@
 package com.zmjjkane.backend.service;
 
 import com.zmjjkane.backend.exception.ResourceNotFoundException;
+import com.zmjjkane.backend.model.ApplicationStatus;
 import com.zmjjkane.backend.model.JobApplication;
 import com.zmjjkane.backend.repository.JobApplicationRepository;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class JobApplicationService {
@@ -42,13 +39,18 @@ public class JobApplicationService {
     }
 
     public void deleteById(Long id) {
-        JobApplication existing = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("JobApplication not found: " + id));
+        if (!repository.existsById(id)) {
+            throw new ResourceNotFoundException("JobApplication not found: " + id);
+        }
         repository.deleteById(id);
     }
 
     // Mock data for now (no DB)
     public List<JobApplication> listAll() {
         return repository.findAll();
+    }
+
+    public List<JobApplication> listByStatus(ApplicationStatus status) {
+        return repository.findByStatus(status);
     }
 }

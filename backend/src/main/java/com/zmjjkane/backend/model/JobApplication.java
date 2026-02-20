@@ -1,8 +1,6 @@
 package com.zmjjkane.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonTypeId;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -52,8 +50,26 @@ public class JobApplication {
     @NotBlank(message = "position is required")
     private String position;
 
-    @NotBlank(message = "status is required")
-    private String status;
+    /**
+     * Application status represented as an enum to enforce a fixed set of
+     * valid states across the frontend–backend API contract.
+     *
+     * JSON → enum conversion is handled automatically by Jackson during
+     * request deserialization (e.g., "APPLIED" → ApplicationStatus.APPLIED).
+     * Invalid or misspelled values will cause a 400 Bad Request, ensuring
+     * clients send only supported status values.
+     *
+     * @Enumerated(EnumType.STRING) controls how the enum is stored in the
+     * database (as its name, e.g., "APPLIED") and read back into the enum.
+     * It does NOT participate in JSON conversion.
+     *
+     * Using enum here guarantees consistent status semantics for filtering,
+     * analytics, and Kanban logic, and prevents arbitrary or inconsistent
+     * status strings in the system.
+     */
+    @Enumerated(EnumType.STRING)
+    @NotNull(message = "status is required")
+    private ApplicationStatus status;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     @NotNull(message = "appliedDate is required")
@@ -63,7 +79,7 @@ public class JobApplication {
     }
 
     // Optional convenience constructor
-    public JobApplication(Long id, String company, String position, String status, LocalDate appliedDate) {
+    public JobApplication(Long id, String company, String position, ApplicationStatus status, LocalDate appliedDate) {
         this.id = id;
         this.company = company;
         this.position = position;
@@ -74,12 +90,12 @@ public class JobApplication {
     public Long getId() { return id; }
     public String getCompany() { return company; }
     public String getPosition() { return position; }
-    public String getStatus() { return status; }
+    public ApplicationStatus getStatus() { return status; }
     public LocalDate getAppliedDate() { return appliedDate; }
 
     public void setId(Long id) { this.id = id; }
     public void setCompany(String company) { this.company = company; }
     public void setPosition(String position) { this.position = position; }
-    public void setStatus(String status) { this.status = status; }
+    public void setStatus(ApplicationStatus status) { this.status = status; }
     public void setAppliedDate(LocalDate appliedDate) { this.appliedDate = appliedDate; }
 }
