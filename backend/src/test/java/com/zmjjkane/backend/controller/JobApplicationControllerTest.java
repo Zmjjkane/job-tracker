@@ -2,6 +2,7 @@ package com.zmjjkane.backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zmjjkane.backend.exception.*;
+import com.zmjjkane.backend.model.ApplicationStatus;
 import com.zmjjkane.backend.model.JobApplication;
 import com.zmjjkane.backend.service.JobApplicationService;
 import org.junit.jupiter.api.Test;
@@ -61,7 +62,7 @@ public class JobApplicationControllerTest {
     void listAll_returns200() throws Exception {
         // Stub the service to return a small list.
         when(jobApplicationService.listAll()).thenReturn(
-                List.of(new JobApplication(1L, "Amazon", "SDE I", "APPLIED", LocalDate.now()))
+                List.of(new JobApplication(1L, "Amazon", "SDE I", ApplicationStatus.APPLIED, LocalDate.now()))
         );
 
         // Verify: HTTP 200 and response if JSON
@@ -73,10 +74,10 @@ public class JobApplicationControllerTest {
     @Test
     void create_returns201_andBody() throws  Exception {
         JobApplication request = new JobApplication(
-                null, "Google", "SWE", "APPLIED", LocalDate.of(2026, 2, 9)
+                null, "Google", "SWE", ApplicationStatus.APPLIED, LocalDate.of(2026, 2, 9)
         );
         JobApplication created = new JobApplication(
-                10L, "Google", "SWE", "APPLIED", LocalDate.of(2026, 2, 9)
+                10L, "Google", "SWE", ApplicationStatus.APPLIED, LocalDate.of(2026, 2, 9)
         );
 
         // Stub: regardless of input object, service.create(...) returns "created".
@@ -121,12 +122,12 @@ public class JobApplicationControllerTest {
     }
 
     @Test
-    void update_nofFound_returns404() throws Exception {
+    void update_notFound_returns404() throws Exception {
         JobApplication request = new JobApplication(
-                null, "Amazon", "SDE I", "INTERVIEW", LocalDate.of(2026, 2, 9)
+                null, "Amazon", "SDE I", ApplicationStatus.INTERVIEW, LocalDate.of(2026, 2, 9)
         );
 
-        // Stub: service returns null -> controller should map it to 404.
+        // Stub: service throws ResourceNotFoundException -> controller should return 404.
         when(jobApplicationService.updateById(eq(999L), any(JobApplication.class)))
                 .thenThrow(new ResourceNotFoundException("JobApplication not found: 999"));
 
@@ -141,10 +142,10 @@ public class JobApplicationControllerTest {
     @Test
     void update_success_returns200_andBody() throws  Exception {
         JobApplication request = new JobApplication(
-                null, "Amazon", "SDE I", "INTERVIEW", LocalDate.of(2026, 2, 9)
+                null, "Amazon", "SDE I", ApplicationStatus.INTERVIEW, LocalDate.of(2026, 2, 9)
         );
         JobApplication updated = new JobApplication(
-                1L, "Amazon", "SDE I", "INTERVIEW", LocalDate.of(2026, 2, 9)
+                1L, "Amazon", "SDE I", ApplicationStatus.INTERVIEW, LocalDate.of(2026, 2, 9)
         );
         when(jobApplicationService.updateById(any(Long.class), any(JobApplication.class))).thenReturn(updated);
 
@@ -195,6 +196,18 @@ public class JobApplicationControllerTest {
         // DELETE /api/job-applications/1 -> 204 No Content
         mockMvc.perform(delete("/api/job-applications/1"))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void listAdd_withStatus_returns200() throws Exception {
+        when(jobApplicationService.listByStatus(ApplicationStatus.APPLIED))
+                .thenReturn(List.of(new JobApplication(1L, "Amazon", "SDE I", ApplicationStatus.APPLIED, LocalDate.now())));
+
+        // 等效于perform(get("/api/job-applications?status=APPLIED"))
+        mockMvc.perform(get("/api/job-applications").param("status", "APPLIED"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$[0].status").value("APPLIED"));
     }
 
 }

@@ -1,5 +1,6 @@
 package com.zmjjkane.backend.controller;
 
+import com.zmjjkane.backend.model.ApplicationStatus;
 import com.zmjjkane.backend.model.JobApplication;
 import com.zmjjkane.backend.service.JobApplicationService;
 import org.springframework.http.HttpStatus;
@@ -20,9 +21,15 @@ public class JobApplicationController {
     }
 
     // GET /api/job-applications -> returns list
+    // @RequetParam取的是URL的query string
+    // 例如 /api/job-applications?status=APPLIED中path是/api/job-applications
+    // query string是status=APPLIED
     @GetMapping
-    public List<JobApplication> listAll() {
-        return jobApplicationService.listAll();
+    public List<JobApplication> listAll(@RequestParam(required = false) ApplicationStatus status) {
+        if (status == null) {
+            return jobApplicationService.listAll();
+        }
+        return jobApplicationService.listByStatus(status);
     }
 
     @GetMapping("/{id}")

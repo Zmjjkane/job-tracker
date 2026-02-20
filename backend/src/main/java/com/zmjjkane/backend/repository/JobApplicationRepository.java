@@ -1,7 +1,10 @@
 package com.zmjjkane.backend.repository;
 
+import com.zmjjkane.backend.model.ApplicationStatus;
 import com.zmjjkane.backend.model.JobApplication;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
 
 /**
  * JobApplicationRepository
@@ -27,5 +30,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * Here we use Long.
  */
 
+// JpaRepository只给了通用CRUD, 没有给按字段过滤的方法, 在此声明后
+// Spring Data JPA会根据方法名里的规则自动生成SQL, 不用自己写实现
 public interface JobApplicationRepository extends JpaRepository<JobApplication, Long> {
+    List<JobApplication> findByStatus(ApplicationStatus status);
 }
